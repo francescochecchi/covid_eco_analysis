@@ -21,7 +21,7 @@
     
     # List of required packages
     x1 <- c("conflicted", "countrycode", "data.table", "dismo", "GGally", "ggpubr", "gtools", "lubridate", "MASS", 
-      "mice", "patchwork", "randomForest", "randomForestExplainer", "RColorBrewer", "readxl", "scales", "tidyverse")
+      "mice", "patchwork", "randomForest", "randomForestExplainer", "RColorBrewer", "readxl", "scales", "tidyverse", "hrbrthemes")
     
     # Install any packages not yet installed
     x2 <- x1 %in% row.names(installed.packages())
@@ -668,9 +668,9 @@
     }
     
     # Attribute missing WHO regions
-    df[df$country %in% c("Aruba", "Curaçao", "Guadeloupe", "French Guiana", "Martinique",  "Puerto Rico"), "region"] <- "PAHO"
+    df[df$country %in% c("Aruba", "CuraÃ§ao", "Guadeloupe", "French Guiana", "Martinique",  "Puerto Rico"), "region"] <- "PAHO"
     df[df$country %in% c("Guam", "New Caledonia", "French Polynesia", "China, Macao SAR", "China, Taiwan Province of China") , "region"] <- "WPRO"
-    df[df$country %in% c("Réunion", "Mayotte" , "Western Sahara"), "region"] <- "AFRO"
+    df[df$country %in% c("RÃ©union", "Mayotte" , "Western Sahara"), "region"] <- "AFRO"
                         
 
 #..........................................................................................
@@ -1865,6 +1865,9 @@
       fit <- f_lm(outcome_now, colnames(df_imputed)[colnames(df_imputed) %in% vars_now], df_imputed)
       summary(fit)
       f_diag_ols(fit)
+
+      # k-folds cross-validation
+      f_cv(fit, k_folds, TRUE)
         
       # remove influential observations
       x2 <- as.data.frame(influence.measures(fit)$infmat)
@@ -1891,6 +1894,9 @@
         f_diag_ols(fit_red)
       }
 
+      # k-folds cross-validation
+      f_cv(fit, k_folds, TRUE)
+
       # add interactions one by one
       for (i in int_terms) {
         x2 <- df_imputed
@@ -1899,6 +1905,9 @@
         print(summary(fit_int))
         f_diag_ols(fit_int)
       }        
+
+      # k-folds cross-validation
+      f_cv(fit, k_folds, TRUE)
         # no interactions improve the model
 
       # write output to file (both full and reduced models)
@@ -1910,6 +1919,9 @@
       fit <- f_lm(outcome_now, colnames(df_imputed)[colnames(df_imputed) %in% vars_now],  x1)
       summary(fit)
       f_diag_ols(fit)
+
+      # k-folds cross-validation
+      f_cv(fit, k_folds, TRUE)
         
       # remove influential observations
       x2 <- as.data.frame(influence.measures(fit)$infmat)
@@ -1926,6 +1938,9 @@
       fit_red <- f_lm(outcome_now, colnames(df_imputed)[colnames(df_imputed) %in% vars_red], x1)
       summary(fit_red)
       f_diag_ols(fit_red)
+
+      # k-folds cross-validation
+      f_cv(fit, k_folds, TRUE)
     
       # remove influential observations from reduced model
       x2 <- as.data.frame(influence.measures(fit_red)$infmat)
@@ -1944,6 +1959,9 @@
         print(summary(fit_int))
         f_diag_ols(fit_int)
       }        
+
+      # k-folds cross-validation
+      f_cv(fit, k_folds, TRUE)
         # no interactions improve model   
         
       # write output to file (both full and reduced models)
@@ -2075,6 +2093,18 @@
       # write output to file (both full and reduced models)
       f_lm_write(paste("out_", outcome_now, "_lm_impute.csv", sep = "") )
 
+
+#...................................      
+# Age plot
+
+plot_median_age_death <- ggplot(df_imputed, aes(x=median_age_cases, y=median_age_deaths,
+                                        color=region)) + 
+  geom_point(size=6, shape=15) +
+  theme(axis.text = element_text(size = 15), axis.title = element_text(size = 15)) +
+  labs(y="median age of deaths", x = "median age of cases") +
+  theme_bw()
+plot_median_age_death
+ggsave("median_age_death_by_region.png", height = 15, width = 25, units = "cm", dpi = "print")
 
 #..........................................................................................
 ### ENDS
